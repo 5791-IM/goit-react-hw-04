@@ -3,6 +3,7 @@ import ImageGallery from "../ImageGallery/ImageGallery";
 import LoadMoreBtn from "../LoadMoreBtn/LoadMoreBtn";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import ImageModal from "../ImageModal/ImageModal";
 import { useEffect, useRef, useState } from "react";
 import getImages from "../../Photo-api";
 import toast, { Toaster } from "react-hot-toast";
@@ -18,11 +19,13 @@ const App = () => {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const bottomRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  // const [modalIsOpen, setIsOpen] = useState(false);
 
   const onSubmit = (query) => {
     setPage(1);
     setImages([]);
-    // setTotalResults(0);
+
     setSearchQuery(query);
     if (query === "") return toast.error("Write something to start searching");
   };
@@ -51,31 +54,17 @@ const App = () => {
     fetchImages();
   }, [page, searchQuery]);
 
-  // const handleSearch = async (query) => {
-  //   setSearchQuery(query);
-  //   setPage(1);
-  //   setImages([]);
-  // };
-
   const handleLoadMore = () => {
-    // setPage(page + 1);
     setPage((prevPage) => prevPage + 1);
   };
 
-  // const handleSubmit = async (query) => {
-  //   try {
-  //     setImages([]);
-  //     setIsError(false);
-  //     setIsLoading(true);
+  const openModal = (image) => {
+    setSelectedImage(image);
+  };
 
-  //     const data = await getImages(query);
-  //     setImages(data);
-  //   } catch (error) {
-  //     setIsError(true);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  const closeModal = () => {
+    setSelectedImage(null);
+  };
 
   return (
     <div className={css.app}>
@@ -84,13 +73,23 @@ const App = () => {
       {isError && (
         <ErrorMessage message="Oops! There was an error! Try again!" />
       )}
-      {images.length > 0 && <ImageGallery items={images} />}
+      {images.length > 0 && (
+        <ImageGallery items={images} openModal={openModal} />
+      )}
       {isLoading && <Loader />}
       {images.length > 0 && !isLoading && (
         <LoadMoreBtn onClick={handleLoadMore} />
       )}
       <div ref={bottomRef}></div>
       <Toaster position="top-right" />
+      {selectedImage && (
+        <ImageModal
+          alt={selectedImage.alt_description}
+          regular={selectedImage.urls.regular}
+          isOpen={!!selectedImage}
+          onRequestClose={closeModal}
+        />
+      )}
     </div>
   );
 };
